@@ -1,0 +1,157 @@
+-- Table: public.departments
+
+-- DROP TABLE public.departments;
+
+CREATE TABLE public.departments
+(
+    dept_no character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    dept_name character varying(255) COLLATE pg_catalog."default",
+    CONSTRAINT departments_pkey PRIMARY KEY (dept_no)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.departments
+    OWNER to postgres;
+
+-- Table: public.dept_emp
+
+-- DROP TABLE public.dept_emp;
+
+CREATE TABLE public.dept_emp
+(
+    emp_no integer NOT NULL,
+    dept_no character varying(225) COLLATE pg_catalog."default",
+    from_date date NOT NULL,
+    to_date date NOT NULL,
+    CONSTRAINT dept_emp_pkey PRIMARY KEY (emp_no, to_date),
+    CONSTRAINT dept_emp_dept_no_fkey FOREIGN KEY (dept_no)
+        REFERENCES public.departments (dept_no) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.dept_emp
+    OWNER to postgres;
+
+-- Table: public.dept_manager
+
+-- DROP TABLE public.dept_manager;
+
+CREATE TABLE public.dept_manager
+(
+    dept_no character varying(30) COLLATE pg_catalog."default",
+    emp_no integer NOT NULL,
+    from_date date,
+    to_date date NOT NULL,
+    CONSTRAINT dept_manager_pkey PRIMARY KEY (emp_no, to_date),
+    CONSTRAINT dept_manager_dept_no_fkey FOREIGN KEY (dept_no)
+        REFERENCES public.departments (dept_no) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.dept_manager
+    OWNER to postgres;
+
+-- Table: public.employees
+
+-- DROP TABLE public.employees;
+
+CREATE TABLE public.employees
+(
+    emp_no integer NOT NULL,
+    birth_date date,
+    first_name character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    last_name character varying(30) COLLATE pg_catalog."default",
+    gender character varying(30) COLLATE pg_catalog."default",
+    hire_date date,
+    CONSTRAINT employees_pkey PRIMARY KEY (emp_no, first_name)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.employees
+    OWNER to postgres;
+
+-- Table: public.salaries
+
+-- DROP TABLE public.salaries;
+
+CREATE TABLE public.salaries
+(
+    emp_no integer NOT NULL,
+    salary integer,
+    from_date date,
+    to_date date NOT NULL,
+    CONSTRAINT salaries_pkey PRIMARY KEY (emp_no, to_date)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.salaries
+    OWNER to postgres;
+
+-- Table: public.titles
+
+-- DROP TABLE public.titles;
+
+CREATE TABLE public.titles
+(
+    emp_no integer,
+    title character varying COLLATE pg_catalog."default",
+    from_date date,
+    to_date date
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public.titles
+    OWNER to postgres;
+--#1
+SELECT employees.emp_no, employees.last_name, employees.first_name, employees.gender, salaries.salary
+    FROM salaries INNER JOIN employees ON (employees.emp_no = salaries.emp_no)
+
+--# 2
+SELECT first_name, last_name, hire_date FROM employees WHERE hire_date BETWEEN '1986-01-01' AND '1986-12-31';
+
+--# 3
+SELECT dept_manager.dept_no, departments.dept_name, dept_manager.emp_no, employees.last_name, employees.first_name, dept_manager.from_date, dept_manager.to_date  
+	FROM dept_manager INNER JOIN employees ON (employees.emp_no = dept_manager.emp_no) 
+	INNER JOIN departments ON (departments.dept_no = dept_manager.dept_no);
+
+--#4
+
+SELECT dept_emp.emp_no, employees.last_name, employees.first_name, departments.dept_name  
+	FROM dept_emp INNER JOIN employees ON (employees.emp_no = dept_emp.emp_no) 
+	INNER JOIN departments ON (departments.dept_no = dept_emp.dept_no);
+
+-- #5
+	
+SELECT first_name, last_name FROM employees WHERE first_name = 'Hercules' AND last_name LIKE 'B%'
+
+--#6
+
+SELECT dept_emp.emp_no, employees.last_name, employees.first_name, departments.dept_name  
+	FROM dept_emp INNER JOIN employees ON (employees.emp_no = dept_emp.emp_no) 
+	INNER JOIN departments ON (departments.dept_no = dept_emp.dept_no) WHERE departments.dept_name = 'Sales';
+
+--#7
+SELECT dept_emp.emp_no, employees.last_name, employees.first_name, departments.dept_name  
+	FROM dept_emp INNER JOIN employees ON (employees.emp_no = dept_emp.emp_no) 
+	INNER JOIN departments ON (departments.dept_no = dept_emp.dept_no) 
+	WHERE departments.dept_name = 'Sales' OR departments.dept_name = 'Development';
+
+--#8
+
+SELECT last_name,COUNT(*) AS "Occurrences" 
+FROM employees 
+GROUP BY last_name
+ORDER BY COUNT(*) DESC;
+
+
+
